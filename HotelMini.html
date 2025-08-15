@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hotel Mini — Offline</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  body{background:#f8f9fa}
+  .app-title{font-weight:600}
+  .table thead th{white-space:nowrap}
+  .tab-pane{padding-top:1rem}
+  .sticky-actions{position:sticky; top:0; z-index: 2; background:#fff}
+  .form-mini .form-control,.form-mini .form-select{height:38px}
+  .badge-soft{background:#eef2f7;border:1px solid #e5e9f0}
+</style>
+</head>
+<body>
+<div class="container py-3">
+  <div class="d-flex align-items-center mb-2">
+    <h4 class="app-title mb-0">🏨 Hotel Mini — Offline</h4>
+    <div class="ms-auto d-flex gap-2">
+      <button id="exportAll" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-down"></i> Ekspor</button>
+      <label class="btn btn-outline-secondary btn-sm mb-0"><i class="bi bi-box-arrow-in-up"></i> Impor
+        <input id="importAll" type="file" accept=".json" hidden>
+      </label>
+      <button id="clearAll" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Hapus Semua</button>
+    </div>
+  </div>
+
+  <ul class="nav nav-pills gap-2 flex-wrap sticky-actions p-2 rounded border">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-rooms"><i class="bi bi-bucket"></i> Housekeeping</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-laundry"><i class="bi bi-basket2"></i> Laundry</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-tasks"><i class="bi bi-list-check"></i> Tugas Staff</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-requests"><i class="bi bi-inbox"></i> Permintaan Tamu</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-reports"><i class="bi bi-graph-up-arrow"></i> Laporan</button></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- HOUSEKEEPING -->
+    <div class="tab-pane fade show active" id="tab-rooms">
+      <div class="card my-3">
+        <div class="card-body form-mini">
+          <form id="formRooms" class="row g-2 align-items-end">
+            <input type="hidden" id="rooms_id">
+            <div class="col-6 col-md-3"><label class="form-label small">No. Kamar</label>
+              <input id="rooms_nomor" class="form-control" required placeholder="101 / B-12">
+            </div>
+            <div class="col-6 col-md-3"><label class="form-label small">Status</label>
+              <select id="rooms_status" class="form-select">
+                <option value="bersih">Bersih</option>
+                <option value="sedang dibersihkan">Sedang Dibersihkan</option>
+                <option value="perlu dibersihkan">Perlu Dibersihkan</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-4"><label class="form-label small">Catatan</label>
+              <input id="rooms_catatan" class="form-control" placeholder="Contoh: perbaiki shower">
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+              <button class="btn btn-primary"><i class="bi bi-save2"></i> <span id="rooms_btn_text">Tambah</span></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body p-2">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead><tr><th>#</th><th>Kamar</th><th>Status</th><th>Catatan</th><th>Update</th><th>Aksi</th></tr></thead>
+              <tbody id="tableRooms"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAUNDRY -->
+    <div class="tab-pane fade" id="tab-laundry">
+      <div class="card my-3">
+        <div class="card-body form-mini">
+          <form id="formLaundry" class="row g-2 align-items-end">
+            <input type="hidden" id="laundry_id">
+            <div class="col-6 col-md-3"><label class="form-label small">Jenis Item</label>
+              <input id="laundry_item" class="form-control" required placeholder="Handuk / Sprei / Seragam">
+            </div>
+            <div class="col-6 col-md-2"><label class="form-label small">Jumlah</label>
+              <input id="laundry_jumlah" type="number" min="1" class="form-control" required>
+            </div>
+            <div class="col-6 col-md-3"><label class="form-label small">Tgl Masuk</label>
+              <input id="laundry_masuk" type="date" class="form-control">
+            </div>
+            <div class="col-6 col-md-3"><label class="form-label small">Tgl Selesai</label>
+              <input id="laundry_selesai" type="date" class="form-control">
+            </div>
+            <div class="col-6 col-md-3"><label class="form-label small">Status</label>
+              <select id="laundry_status" class="form-select">
+                <option value="belum diproses">Belum Diproses</option>
+                <option value="sedang dicuci">Sedang Dicuci</option>
+                <option value="selesai">Selesai</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2 d-grid">
+              <button class="btn btn-primary"><i class="bi bi-save2"></i> <span id="laundry_btn_text">Tambah</span></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body p-2">
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead><tr><th>#</th><th>Item</th><th>Jumlah</th><th>Masuk</th><th>Selesai</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="tableLaundry"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS -->
+    <div class="tab-pane fade" id="tab-tasks">
+      <div class="card my-3">
+        <div class="card-body form-mini">
+          <form id="formTasks" class="row g-2 align-items-end">
+            <input type="hidden" id="tasks_id">
+            <div class="col-12 col-md-3"><label class="form-label small">Staff</label>
+              <input id="tasks_staff" class="form-control" placeholder="Nama/ID Staff">
+            </div>
+            <div class="col-12 col-md-5"><label class="form-label small">Deskripsi</label>
+              <input id="tasks_desc" class="form-control" required placeholder="Deskripsi tugas">
+            </div>
+            <div class="col-6 col-md-2"><label class="form-label small">Prioritas</label>
+              <select id="tasks_prio" class="form-select">
+                <option value="tinggi">Tinggi</option>
+                <option value="sedang" selected>Sedang</option>
+                <option value="rendah">Rendah</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2"><label class="form-label small">Status</label>
+              <select id="tasks_status" class="form-select">
+                <option value="belum mulai">Belum Mulai</option>
+                <option value="proses">Proses</option>
+                <option value="selesai">Selesai</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2"><label class="form-label small">Tanggal</label>
+              <input id="tasks_date" type="date" class="form-control">
+            </div>
+            <div class="col-6 col-md-2 d-grid">
+              <button class="btn btn-primary"><i class="bi bi-save2"></i> <span id="tasks_btn_text">Tambah</span></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body p-2">
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead><tr><th>#</th><th>Staff</th><th>Deskripsi</th><th>Prioritas</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="tableTasks"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="tab-pane fade" id="tab-requests">
+      <div class="card my-3">
+        <div class="card-body form-mini">
+          <form id="formRequests" class="row g-2 align-items-end">
+            <input type="hidden" id="requests_id">
+            <div class="col-4 col-md-2"><label class="form-label small">No. Kamar</label>
+              <input id="requests_room" class="form-control" placeholder="101">
+            </div>
+            <div class="col-8 col-md-6"><label class="form-label small">Permintaan</label>
+              <input id="requests_text" class="form-control" required placeholder="Tambahan handuk / makanan...">
+            </div>
+            <div class="col-6 col-md-2"><label class="form-label small">Ditangani</label>
+              <input id="requests_by" class="form-control" placeholder="Nama staff">
+            </div>
+            <div class="col-6 col-md-2"><label class="form-label small">Status</label>
+              <select id="requests_status" class="form-select">
+                <option value="diterima">Diterima</option>
+                <option value="diproses">Diproses</option>
+                <option value="selesai">Selesai</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2"><label class="form-label small">Tanggal</label>
+              <input id="requests_date" type="date" class="form-control">
+            </div>
+            <div class="col-6 col-md-2 d-grid">
+              <button class="btn btn-primary"><i class="bi bi-save2"></i> <span id="requests_btn_text">Tambah</span></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body p-2">
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead><tr><th>#</th><th>Kamar</th><th>Permintaan</th><th>Ditangani</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="tableRequests"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="tab-pane fade" id="tab-reports">
+      <div class="card my-3">
+        <div class="card-body">
+          <form id="formReports" class="row g-2 align-items-end">
+            <div class="col-8 col-md-3">
+              <label class="form-label small">Tanggal Laporan</label>
+              <input id="reports_date" type="date" class="form-control">
+            </div>
+            <div class="col-auto d-grid">
+              <button class="btn btn-primary"><i class="bi bi-file-earmark-plus"></i> Buat Snapshot</button>
+            </div>
+            <div class="col-auto d-grid">
+              <button id="reports_export" type="button" class="btn btn-outline-secondary"><i class="bi bi-download"></i> Ekspor Laporan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body p-2">
+          <div class="list-group" id="listReports"></div>
+          <div id="emptyReports" class="text-center text-muted small py-3 d-none">Belum ada laporan</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ====== UTIL ======
+const KEYS = {
+  rooms: 'hotel_rooms_v1',
+  laundry: 'hotel_laundry_v1',
+  tasks: 'hotel_tasks_v1',
+  requests: 'hotel_requests_v1',
+  reports: 'hotel_reports_v1'
+};
+const today = () => new Date().toISOString().slice(0,10);
+const genId = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+const ehtml = s => String(s??'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+const read = (k) => { try{ return JSON.parse(localStorage.getItem(k))||[] }catch(_){ return [] } };
+const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const setBtn = (el, isEdit) => el.textContent = isEdit ? 'Update' : 'Tambah';
+
+// ====== HOUSEKEEPING ======
+const tbRooms = document.getElementById('tableRooms');
+const fRooms = document.getElementById('formRooms');
+const roomsId = document.getElementById('rooms_id');
+const roomsNomor = document.getElementById('rooms_nomor');
+const roomsStatus = document.getElementById('rooms_status');
+const roomsCatatan = document.getElementById('rooms_catatan');
+const roomsBtnText = document.getElementById('rooms_btn_text');
+
+function renderRooms(){
+  const data = read(KEYS.rooms);
+  tbRooms.innerHTML = '';
+  if(!data.length){ tbRooms.innerHTML='<tr><td colspan="6" class="text-center text-muted small">Belum ada data</td></tr>'; return; }
+  data.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i+1}</td>
+      <td>${ehtml(r.nomor)}</td>
+      <td><span class="badge rounded-pill badge-soft">${ehtml(r.status)}</span></td>
+      <td>${ehtml(r.catatan||'')}</td>
+      <td><small class="text-muted">${ehtml(r.updated_at||'')}</small></td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" data-act="edit" data-id="${r.id}"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger" data-act="del" data-id="${r.id}"><i class="bi bi-trash"></i></button>
+      </td>`;
+    tbRooms.appendChild(tr);
+  });
+}
+tbRooms.addEventListener('click', (e)=>{
+  const b = e.target.closest('button'); if(!b) return;
+  const id = b.dataset.id; const act = b.dataset.act;
+  const arr = read(KEYS.rooms);
+  if(act==='edit'){
+    const it = arr.find(x=>x.id===id); if(!it) return;
+    roomsId.value = it.id; roomsNomor.value = it.nomor; roomsStatus.value = it.status; roomsCatatan.value = it.catatan||'';
+    setBtn(roomsBtnText, true);
+  }
+  if(act==='del'){
+    if(confirm('Hapus data?')){ write(KEYS.rooms, arr.filter(x=>x.id!==id)); renderRooms(); }
+  }
+});
+fRooms.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const nomor = roomsNomor.value.trim(); if(!nomor) return alert('Isi nomor kamar');
+  const arr = read(KEYS.rooms);
+  const id = roomsId.value;
+  if(id){
+    const it = arr.find(x=>x.id===id);
+    if(it){ it.nomor=nomor; it.status=roomsStatus.value; it.catatan=roomsCatatan.value.trim(); it.updated_at=new Date().toISOString(); }
+  }else{
+    arr.push({id:genId(), nomor, status:roomsStatus.value, catatan:roomsCatatan.value.trim(), updated_at:new Date().toISOString()});
+  }
+  write(KEYS.rooms, arr);
+  fRooms.reset(); roomsId.value=''; setBtn(roomsBtnText,false);
+  renderRooms();
+});
+
+// ====== LAUNDRY ======
+const tbLaundry = document.getElementById('tableLaundry');
+const fLaundry = document.getElementById('formLaundry');
+const laundryId = document.getElementById('laundry_id');
+const laundryItem = document.getElementById('laundry_item');
+const laundryJumlah = document.getElementById('laundry_jumlah');
+const laundryMasuk = document.getElementById('laundry_masuk');
+const laundrySelesai = document.getElementById('laundry_selesai');
+const laundryStatus = document.getElementById('laundry_status');
+const laundryBtnText = document.getElementById('laundry_btn_text');
+laundryMasuk.value = today();
+
+function renderLaundry(){
+  const data = read(KEYS.laundry);
+  tbLaundry.innerHTML = '';
+  if(!data.length){ tbLaundry.innerHTML='<tr><td colspan="7" class="text-center text-muted small">Belum ada data</td></tr>'; return;}
+  data.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i+1}</td>
+      <td>${ehtml(r.jenis_item)}</td>
+      <td>${ehtml(r.jumlah)}</td>
+      <td>${ehtml(r.tanggal_masuk||'')}</td>
+      <td>${ehtml(r.tanggal_selesai||'')}</td>
+      <td><span class="badge rounded-pill badge-soft">${ehtml(r.status)}</span></td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" data-act="edit" data-id="${r.id}"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger" data-act="del" data-id="${r.id}"><i class="bi bi-trash"></i></button>
+      </td>`;
+    tbLaundry.appendChild(tr);
+  });
+}
+tbLaundry.addEventListener('click',(e)=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const id=b.dataset.id; const act=b.dataset.act;
+  const arr=read(KEYS.laundry);
+  if(act==='edit'){
+    const it=arr.find(x=>x.id===id); if(!it) return;
+    laundryId.value=it.id; laundryItem.value=it.jenis_item; laundryJumlah.value=it.jumlah;
+    laundryMasuk.value=it.tanggal_masuk||today(); laundrySelesai.value=it.tanggal_selesai||''; laundryStatus.value=it.status;
+    setBtn(laundryBtnText,true);
+  }
+  if(act==='del'){
+    if(confirm('Hapus item?')){ write(KEYS.laundry, arr.filter(x=>x.id!==id)); renderLaundry(); }
+  }
+});
+fLaundry.addEventListener('submit',(e)=>{
+  e.preventDefault();
+  const jenis = laundryItem.value.trim(); const jumlah = parseInt(laundryJumlah.value||'0',10);
+  if(!jenis || jumlah<=0) return alert('Isi jenis & jumlah > 0');
+  const arr=read(KEYS.laundry); const id=laundryId.value;
+  if(id){
+    const it=arr.find(x=>x.id===id);
+    if(it){ it.jenis_item=jenis; it.jumlah=jumlah; it.tanggal_masuk=laundryMasuk.value||today(); it.tanggal_selesai=laundrySelesai.value||''; it.status=laundryStatus.value; it.updated_at=new Date().toISOString(); }
+  }else{
+    arr.push({id:genId(), jenis_item:jenis, jumlah, tanggal_masuk:laundryMasuk.value||today(), tanggal_selesai:laundrySelesai.value||'', status:laundryStatus.value, updated_at:new Date().toISOString()});
+  }
+  write(KEYS.laundry, arr);
+  fLaundry.reset(); laundryId.value=''; laundryMasuk.value=today(); setBtn(laundryBtnText,false);
+  renderLaundry();
+});
+
+// ====== TASKS ======
+const tbTasks=document.getElementById('tableTasks');
+const fTasks=document.getElementById('formTasks');
+const tasksId=document.getElementById('tasks_id');
+const tasksStaff=document.getElementById('tasks_staff');
+const tasksDesc=document.getElementById('tasks_desc');
+const tasksPrio=document.getElementById('tasks_prio');
+const tasksStatus=document.getElementById('tasks_status');
+const tasksDate=document.getElementById('tasks_date');
+const tasksBtnText=document.getElementById('tasks_btn_text');
+tasksDate.value=today();
+
+function renderTasks(){
+  const data=read(KEYS.tasks);
+  tbTasks.innerHTML='';
+  if(!data.length){ tbTasks.innerHTML='<tr><td colspan="7" class="text-center text-muted small">Belum ada data</td></tr>'; return; }
+  data.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td>
+      <td>${ehtml(r.id_user||'')}</td>
+      <td>${ehtml(r.deskripsi)}</td>
+      <td><span class="badge rounded-pill badge-soft">${ehtml(r.prioritas)}</span></td>
+      <td>${ehtml(r.tanggal||'')}</td>
+      <td>${ehtml(r.status)}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" data-act="edit" data-id="${r.id}"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger" data-act="del" data-id="${r.id}"><i class="bi bi-trash"></i></button>
+      </td>`;
+    tbTasks.appendChild(tr);
+  });
+}
+tbTasks.addEventListener('click',(e)=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const id=b.dataset.id; const act=b.dataset.act; const arr=read(KEYS.tasks);
+  if(act==='edit'){
+    const it=arr.find(x=>x.id===id); if(!it) return;
+    tasksId.value=it.id; tasksStaff.value=it.id_user||''; tasksDesc.value=it.deskripsi;
+    tasksPrio.value=it.prioritas; tasksStatus.value=it.status; tasksDate.value=it.tanggal||today();
+    setBtn(tasksBtnText,true);
+  }
+  if(act==='del'){
+    if(confirm('Hapus tugas?')){ write(KEYS.tasks, arr.filter(x=>x.id!==id)); renderTasks(); }
+  }
+});
+fTasks.addEventListener('submit',(e)=>{
+  e.preventDefault();
+  if(!tasksDesc.value.trim()) return alert('Isi deskripsi tugas');
+  const arr=read(KEYS.tasks); const id=tasksId.value;
+  if(id){
+    const it=arr.find(x=>x.id===id);
+    if(it){ it.id_user=tasksStaff.value.trim(); it.deskripsi=tasksDesc.value.trim(); it.prioritas=tasksPrio.value; it.status=tasksStatus.value; it.tanggal=tasksDate.value||today(); it.updated_at=new Date().toISOString(); }
+  }else{
+    arr.push({ id:genId(), id_user:tasksStaff.value.trim(), deskripsi:tasksDesc.value.trim(), prioritas:tasksPrio.value, status:tasksStatus.value, tanggal:tasksDate.value||today(), updated_at:new Date().toISOString() });
+  }
+  write(KEYS.tasks, arr);
+  fTasks.reset(); tasksId.value=''; tasksDate.value=today(); setBtn(tasksBtnText,false);
+  renderTasks();
+});
+
+// ====== REQUESTS ======
+const tbRequests=document.getElementById('tableRequests');
+const fRequests=document.getElementById('formRequests');
+const requestsId=document.getElementById('requests_id');
+const requestsRoom=document.getElementById('requests_room');
+const requestsText=document.getElementById('requests_text');
+const requestsBy=document.getElementById('requests_by');
+const requestsStatus=document.getElementById('requests_status');
+const requestsDate=document.getElementById('requests_date');
+const requestsBtnText=document.getElementById('requests_btn_text');
+requestsDate.value=today();
+
+function renderRequests(){
+  const data=read(KEYS.requests);
+  tbRequests.innerHTML='';
+  if(!data.length){ tbRequests.innerHTML='<tr><td colspan="7" class="text-center text-muted small">Belum ada data</td></tr>'; return; }
+  data.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td>
+      <td>${ehtml(r.kamar||'')}</td>
+      <td>${ehtml(r.permintaan)}</td>
+      <td>${ehtml(r.handled_by||'')}</td>
+      <td>${ehtml(r.tanggal||'')}</td>
+      <td>${ehtml(r.status)}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" data-act="edit" data-id="${r.id}"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger" data-act="del" data-id="${r.id}"><i class="bi bi-trash"></i></button>
+      </td>`;
+    tbRequests.appendChild(tr);
+  });
+}
+tbRequests.addEventListener('click',(e)=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const id=b.dataset.id; const act=b.dataset.act; const arr=read(KEYS.requests);
+  if(act==='edit'){
+    const it=arr.find(x=>x.id===id); if(!it) return;
+    requestsId.value=it.id; requestsRoom.value=it.kamar||''; requestsText.value=it.permintaan;
+    requestsBy.value=it.handled_by||''; requestsStatus.value=it.status; requestsDate.value=it.tanggal||today();
+    setBtn(requestsBtnText,true);
+  }
+  if(act==='del'){
+    if(confirm('Hapus permintaan?')){ write(KEYS.requests, arr.filter(x=>x.id!==id)); renderRequests(); }
+  }
+});
+fRequests.addEventListener('submit',(e)=>{
+  e.preventDefault();
+  if(!requestsText.value.trim()) return alert('Isi permintaan tamu');
+  const arr=read(KEYS.requests); const id=requestsId.value;
+  if(id){
+    const it=arr.find(x=>x.id===id);
+    if(it){ it.kamar=requestsRoom.value.trim(); it.permintaan=requestsText.value.trim(); it.handled_by=requestsBy.value.trim(); it.status=requestsStatus.value; it.tanggal=requestsDate.value||today(); it.updated_at=new Date().toISOString(); }
+  }else{
+    arr.push({ id:genId(), kamar:requestsRoom.value.trim(), permintaan:requestsText.value.trim(), handled_by:requestsBy.value.trim(), status:requestsStatus.value, tanggal:requestsDate.value||today(), updated_at:new Date().toISOString() });
+  }
+  write(KEYS.requests, arr);
+  fRequests.reset(); requestsId.value=''; requestsDate.value=today(); setBtn(requestsBtnText,false);
+  renderRequests();
+});
+
+// ====== REPORTS ======
+const fReports=document.getElementById('formReports');
+const reportsDate=document.getElementById('reports_date');
+const listReports=document.getElementById('listReports');
+const emptyReports=document.getElementById('emptyReports');
+reportsDate.value=today();
+
+function renderReports(){
+  const reports=read(KEYS.reports);
+  listReports.innerHTML='';
+  if(!reports.length){ emptyReports.classList.remove('d-none'); return } else emptyReports.classList.add('d-none');
+  // newest first
+  [...reports].reverse().forEach(r=>{
+    const item=document.createElement('div');
+    item.className='list-group-item';
+    item.innerHTML=`
+      <div class="d-flex justify-content-between">
+        <div>
+          <b>${ehtml(r.tanggal)}</b>
+          <div class="small text-muted">Dibuat: ${ehtml(r.created_at)}</div>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-danger" data-act="del" data-id="${r.id}"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+      <div class="row mt-2 small">
+        <div class="col-6 col-md-3">Kamar: ${r.housekeeping.total_kamar} (bersih: ${r.housekeeping.bersih})</div>
+        <div class="col-6 col-md-3">Laundry: ${r.laundry.total} (selesai: ${r.laundry.selesai})</div>
+        <div class="col-6 col-md-3">Tugas: ${r.tasks.total} (selesai: ${r.tasks.selesai})</div>
+        <div class="col-6 col-md-3">Requests: ${r.requests.total} (open: ${r.requests.open})</div>
+      </div>`;
+    listReports.appendChild(item);
+  });
+}
+listReports.addEventListener('click',(e)=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.act==='del'){
+    if(confirm('Hapus laporan?')){
+      const id=b.dataset.id;
+      const arr=read(KEYS.reports).filter(x=>x.id!==id);
+      write(KEYS.reports, arr);
+      renderReports();
+    }
+  }
+});
+fReports.addEventListener('submit',(e)=>{
+  e.preventDefault();
+  const rdate = reportsDate.value||today();
+  const rooms=read(KEYS.rooms);
+  const laundry=read(KEYS.laundry);
+  const tasks=read(KEYS.tasks);
+  const reqs=read(KEYS.requests);
+  const report = {
+    id: genId(),
+    tanggal: rdate,
+    housekeeping: {
+      total_kamar: rooms.length,
+      bersih: rooms.filter(x=>x.status==='bersih').length,
+      perlu: rooms.filter(x=>x.status==='perlu dibersihkan').length
+    },
+    laundry: {
+      total: laundry.length,
+      selesai: laundry.filter(x=>x.status==='selesai').length
+    },
+    tasks: {
+      total: tasks.length,
+      selesai: tasks.filter(x=>x.status==='selesai').length
+    },
+    requests: {
+      total: reqs.length,
+      open: reqs.filter(x=>x.status!=='selesai').length
+    },
+    created_at: new Date().toISOString()
+  };
+  const arr=read(KEYS.reports); arr.push(report); write(KEYS.reports, arr);
+  renderReports();
+});
+
+// ====== EXPORT / IMPORT / CLEAR ======
+document.getElementById('exportAll').addEventListener('click', ()=>{
+  const payload = {
+    meta: { app: 'hotel-mini-offline', version: 1, exported_at: new Date().toISOString() },
+    data: {
+      rooms: read(KEYS.rooms),
+      laundry: read(KEYS.laundry),
+      tasks: read(KEYS.tasks),
+      requests: read(KEYS.requests),
+      reports: read(KEYS.reports)
+    }
+  };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'hotel_mini_backup.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('importAll').addEventListener('change', (e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const j=JSON.parse(r.result);
+      if(!j || !j.data) throw new Error('Format tidak sesuai');
+      write(KEYS.rooms, Array.isArray(j.data.rooms)? j.data.rooms: []);
+      write(KEYS.laundry, Array.isArray(j.data.laundry)? j.data.laundry: []);
+      write(KEYS.tasks, Array.isArray(j.data.tasks)? j.data.tasks: []);
+      write(KEYS.requests, Array.isArray(j.data.requests)? j.data.requests: []);
+      write(KEYS.reports, Array.isArray(j.data.reports)? j.data.reports: []);
+      renderRooms(); renderLaundry(); renderTasks(); renderRequests(); renderReports();
+      alert('Impor berhasil');
+    }catch(err){ alert('Gagal impor: ' + err.message); }
+  };
+  r.readAsText(f);
+  e.target.value='';
+});
+document.getElementById('clearAll').addEventListener('click', ()=>{
+  if(confirm('Hapus SEMUA data? (tidak bisa dibatalkan)')){
+    write(KEYS.rooms, []); write(KEYS.laundry, []); write(KEYS.tasks, []); write(KEYS.requests, []); write(KEYS.reports, []);
+    renderRooms(); renderLaundry(); renderTasks(); renderRequests(); renderReports();
+  }
+});
+document.getElementById('reports_export').addEventListener('click', ()=>{
+  const data = read(KEYS.reports);
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='reports.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ====== INIT ======
+renderRooms(); renderLaundry(); renderTasks(); renderRequests(); renderReports();
+</script>
+</body>
+</html>
